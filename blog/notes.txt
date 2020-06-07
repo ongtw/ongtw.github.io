@@ -6,3 +6,4 @@ Python Kivy
 - on_press to callback event continuously
 - remove specific instructions from canvas
 - add backgrounds to widgets
+- handle input: mouse down/up, mouse over
