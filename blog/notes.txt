@@ -1,7 +1,7 @@
 To blog about:
 
 Python Kivy
-- kv file: root object vs classes
+- kv file: root widget vs classes, widget traversal self.parent
 - kv file: python code to access widgets declared in kv file
 - kv file: button on_press/on_release vs on_touch_down/on_touch_up (on_touch_up triggered twice(?))
 - kv file: using class/functions in python code behind - on_press to callback event continuously
@@ -9,3 +9,5 @@ Python Kivy
 - remove specific instructions from canvas
 - add backgrounds to widgets
 - handle input: mouse down/up, mouse over
+- volume button label class: pictorial view of volume level
+- quirks: pygame mixer plays mp3 slow -> need to resample to 44100Hz using Audacity
