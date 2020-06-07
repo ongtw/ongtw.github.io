@@ -1,0 +1,8 @@
+To blog about:
+
+Python Kivy
+- kv file root object vs classes
+- access widgets declared in kv file from Python code
+- on_press to callback event continuously
+- remove specific instructions from canvas
+- add backgrounds to widgets
