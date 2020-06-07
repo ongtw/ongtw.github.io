@@ -1,10 +1,10 @@
 To blog about:
 
 Python Kivy
-- kv file root object vs classes
-- access widgets declared in kv file from Python code
-- on_press to callback event continuously
+- kv file: root object vs classes
+- kv file: python code to access widgets declared in kv file
+- kv file: button on_press/on_release vs on_touch_down/on_touch_up (on_touch_up triggered twice(?))
+- kv file: using class/functions in python code behind- on_press to callback event continuously
 - remove specific instructions from canvas
 - add backgrounds to widgets
 - handle input: mouse down/up, mouse over
-- button in kv file: on_press/on_release vs on_touch_down/on_touch_up (on_touch_up triggered twice(?))
