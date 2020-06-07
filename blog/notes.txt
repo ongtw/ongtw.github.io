@@ -7,4 +7,4 @@ Python Kivy
 - remove specific instructions from canvas
 - add backgrounds to widgets
 - handle input: mouse down/up, mouse over
-- button: on_press/on_release vs on_touch_down/on_touch_up
+- button in kv file: on_press/on_release vs on_touch_down/on_touch_up (on_touch_up triggered twice(?))
