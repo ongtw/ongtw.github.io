@@ -6,6 +6,7 @@ Python Kivy
 - kv file: button on_press/on_release vs on_touch_down/on_touch_up (on_touch_up triggered twice(?))
 - kv file: using class/functions in python code behind - on_press to callback event continuously
 - kv file: bind button text to variable in python code
+- kv file does not work at module level: main.py, main.kv, module.py, module.kv (<- this is wrong!)
 - remove specific instructions from canvas
 - add backgrounds to widgets
 - handle input: mouse down/up, mouse over
