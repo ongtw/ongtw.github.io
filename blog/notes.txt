@@ -13,3 +13,8 @@ Python Kivy
 - volume button label class: pictorial view of volume level
 - quirks: pygame mixer plays mp3 slow -> need to resample to 44100Hz using Audacity
 - trick: use Clock.schedule_interval/once() to allow widgets properties to be updated upon changes (e.g. window resize event)
+
+sqlalchemy
+- MySQL two database with same table name: haven't found a working solution yet, tried to no avail
+    multiple declarative bases, multiple sql engines, explicitly specify __tablename__="db.table"
+    
