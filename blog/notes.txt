@@ -17,4 +17,5 @@ Python Kivy
 sqlalchemy
 - MySQL two database with same table name: haven't found a working solution yet, tried to no avail
     multiple declarative bases, multiple sql engines, explicitly specify __tablename__="db.table"
-    
+  Found solution: specify schema explicitly!  e.g. Class1:__tableargs__={"schema":"db1"}, Class2:__tableargs__={"schema":"db2"}
+
