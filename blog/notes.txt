@@ -13,10 +13,15 @@ Python Kivy
 - volume button label class: pictorial view of volume level
 - quirks: pygame mixer plays mp3 slow -> need to resample to 44100Hz using Audacity
 - trick: use Clock.schedule_interval/once() to allow widgets properties to be updated upon changes (e.g. window resize event)
+- device independent graphics
+- drawing on canvas: local vs global coords
+- scissors for clipping
 
 Kivy Qns:
 - what event is called (if any) after widget initialises and finishes drawing itself onscreen?
 - how to bind a Color instruction dynamically? (to create color cyling)
+- pygame deprecated as of Kivy 1.11, what are the alternatives?
+- fps varies according to systems: ways how to sync animation events?
 
 sqlalchemy
 - MySQL two database with same table name: haven't found a working solution yet, tried to no avail
