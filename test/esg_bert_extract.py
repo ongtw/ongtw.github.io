@@ -1,0 +1,245 @@
+from typing import List, Dict
+import argparse
+import numpy as np
+import pandas as pd
+import re
+import contractions
+import gensim
+import pdfminer.high_level
+import PyPDF2
+import spacy
+import string
+from time import perf_counter
+
+
+# Global vars
+_verbose = 0
+
+
+#
+# PDF Text Extraction Routines
+#
+def extract_pdf_pypdf2(filename: str) -> str:
+    """Extract text from given PDF file using PyPDF2
+
+    Args:
+        filename (str): PDF filename
+
+    Returns:
+        str: extracted text from PDF
+    """
+    with open(filename, mode="rb") as f:
+        pdf = PyPDF2.PdfFileReader(f)
+        num_pages = pdf.getNumPages()
+        text = [pdf.getPage(i).extractText() for i in range(num_pages)]
+        text = "\n".join(text)
+        return text
+
+
+def extract_pdf_pdfminer(filename: str) -> str:
+    """Extract text from given PDF file using PDFMiner
+
+    Args:
+        filename (str): PDF filename
+
+    Returns:
+        str: extracted text from PDF
+    """
+    text = pdfminer.high_level.extract_text(filename)
+    return text
+
+
+#
+# Text Cleaning Routines
+#
+def remove_non_ascii(text: str) -> str:
+    """Remove non-ASCII characters from given text
+
+    Args:
+        text (str): input text
+
+    Returns:
+        str: cleaned text without non-ASCII chars
+    """
+    printable = set(string.printable)
+    text = "".join(filter(lambda x: x in printable, text))
+    return text
+
+
+#
+# Sentence Extraction, Tokenizers, etc.
+#
+def extract_sentences(nlp, text: str) -> List:
+    """Extract sentences from given (raw) text
+
+    Args:
+        nlp ([type]): spacy's NLP model for parsing paragraphs
+        text (str): raw input text
+
+    Returns:
+        List: extracted sentences
+    """
+    text = remove_non_ascii(text)
+    lines = []
+    prev = ""
+    for line in text.split("\n"):
+        # aggregate consecutive lines where text may be broken down only if
+        # next line starts with space or previous line not ending with dot
+        if line.startswith(" ") or not prev.endswith("."):
+            prev = prev + " " + line
+        else:
+            # new paragraph
+            lines.append(contractions.fix(prev))
+            prev = line
+    lines.append(prev)  # don't forget left-over paragraph
+
+    line_idx = 0
+    sentences = []
+    # best effort to clean paragraphs for now
+    for line in lines:
+        # removing header number
+        line = re.sub(r"^\s?\d+(.*)$", r"\1", line)
+        # removing trailing spaces
+        line = line.strip()
+        # words may be split between lines, ensure we link them back together
+        line = re.sub(r"\s?-\s?", "-", line)
+        # remove space prior to punctuation
+        line = re.sub(r"\s?([,:;\.])", r"\1", line)
+        # ESG contains a lot of figures that are not relevant to grammatical structure
+        line = re.sub(r"\d{5,}", r" ", line)
+        # remove mentions of URLs
+        line = re.sub(
+            r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*",
+            r" ",
+            line,
+        )
+        # remove CID fonts
+        line = re.sub(r"\(cid:[a-f0-9]+\)", r" ", line)
+        # remove multiple spaces
+        line = re.sub(r"\s+", " ", line)
+
+        if _verbose > 0:
+            line_idx += 1
+            print(f"{line_idx}: line length={len(line)}")
+            if len(line) > 1000000:
+                print(line)
+
+        # split paragraphs into well defined sentences using spacy
+        for part in list(nlp(line).sents):
+            sentences.append(str(part).strip())
+
+    return sentences
+
+
+def tokenize(sentence: str) -> str:
+    """Tokenize given sentence using gensim package
+
+    Args:
+        sentence (str): input sentence
+
+    Returns:
+        str: output tokens
+    """
+    gen = gensim.utils.simple_preprocess(sentence, deacc=True)
+    toks = " ".join(gen)
+    return toks
+
+
+def lemmatize(nlp, sentence: str) -> str:
+    """Lemmatize given sentence using spacy
+
+    Args:
+        nlp ([type]): spacy's NLP model for lemmatization
+        sentence (str): input sentence
+
+    Returns:
+        [type]: output tokens
+    """
+    words = nlp(sentence)  # parse sentence using spacy
+    lemma = []
+    # convert words into their simplest form (singular, present tense, etc.)
+    for word in words:
+        if word.lemma_ not in ["-PRON-"]:
+            lemma.append(word.lemma_)
+    toks = tokenize(" ".join(lemma))
+    return toks
+
+
+def get_input_params():
+    """Return user inputs on CLI
+
+    Returns:
+        [object]: args object
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", help="input file", type=str, required=True)
+    parser.add_argument(
+        "-p",
+        type=str,
+        default="pdfminer",
+        help="PDF parser to use {pdfminer, pypdf} (default: pdfminer)",
+    )
+    parser.add_argument(
+        "-v",
+        type=int,
+        default=0,
+        help="Verbose mode {0=quiet, 1=info} (default: 0)",
+    )
+    args = parser.parse_args()
+    return args
+
+
+def get_csv_filename(filepath: str) -> str:
+    """Get csv filename from full file path
+
+    Args:
+        filepath (str): full file path
+
+    Returns:
+        str: csv filename
+    """
+    filename = filepath.split("/")[-1]
+    toks = filename.split(".")
+    toks[-1] = "csv"
+    csv_filename = ".".join(toks)
+    return csv_filename
+
+
+def save_temp_working_file(text: str):
+    """Save temp working text file in /tmp
+
+    Args:
+        text (str): text contents of temp working text file
+    """
+    tmp_filepath = "/tmp/esg_bert_tmp.txt"
+    tmp_file = open(tmp_filepath, "w")
+    tmp_file.write(text)
+    tmp_file.close()
+
+
+if __name__ == "__main__":
+    args = get_input_params()
+    fullpath = args.f
+    csv_filename = get_csv_filename(fullpath)
+    pdf_util = args.p
+    _verbose = args.v
+    print(f"fullpath = {fullpath}")
+    print(f"csv_filename = {csv_filename}")
+    print(f"pdf_util = {pdf_util}")
+
+    if pdf_util == "pypdf":
+        text = extract_pdf_pypdf2(fullpath)
+    else:
+        text = extract_pdf_pdfminer(fullpath)
+
+    save_temp_working_file(text)
+
+    try:
+        nlp = spacy.load("en_core_web_sm", disable=["ner"])
+    except:
+        spacy.cli.download("en_core_web_sm")
+        nlp = spacy.load("en_core_web_sm", disable=["ner"])
+    sentences = extract_sentences(nlp, text)
+    df = pd.DataFrame(sentences)
+    # print(df.head())
+    df.to_csv(csv_filename, index=False)
