@@ -77,8 +77,10 @@
 	<p>
 		Junior Programmer (JP) wrote some Python code to determine if a Text column in a Pandas dataframe is likely to contain English text.
 		JP's code took 4+ hours to run on a 600-row dataframe; Text is standard sentence length, less than 50 words on average.
+	</p>
+	<p>
 		I took a look at JP's code and noted the bottlenecks, some obvious, some not so obvious.
-		After fiddling with it for a while, I managed to take the runtime down to 6 seconds.
+		After fiddling with it for a while, managed to take the runtime down to 6 seconds.
 		JP's Code is shown below, so let us investigate what are the bottlenecks:
 	</p>
 	<pre>
