@@ -1,8 +1,31 @@
 <html>
   <head>
-    <title>Optimizing ML Code 01</title>
+    <title>Optimizing NLP Code 01</title>
   </head>
   <body>
-    <h1>Optimizing ML Code 01</h1>
+    <h1>Optimizing NLP Code 01</h1>
+    <p>Junior Programmer (JP) wrote some python code to determine which rows in a pandas dataframe likely contains English text.
+      JP's code took 4+ hours to run on a 600 row dataframe (the text column is standard paragraph length, so say 100 words on average).
+      JP's code is listed below:</p>
+    <code>
+      # ... other imports left out for brevity ...
+      from nltk.stem import WordNetLemmatizer
+      from nltk.corpus import words
+      
+      lemmatizer = WordNetLemmatizer()      
+      sp = spacy.load("en_core_web_sm", disable=["ner"])
+
+      # Get all the percentage of sentences with english words
+      percentageValidEng = []
+      for index, row in df.iterrows():
+          # number of words per row
+          numWords = len(row['POS'])
+          # append True or False
+          validity = []
+          for token in sp(row['Text']):
+              if (lemmatizer.lemmatize(token.text.lower()) in words.words()) == True:
+                  validity.append(1)
+          percentageValidEng.append(len(validity)/numWords)
+    </code>
   </body>
 </html>
