@@ -1,53 +1,102 @@
-<html>
-  <head>
-    <title>Optimizing NLP Code 01</title>
-    <style>
-pre.code {
-    white-space: pre-wrap;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<style>
+	pre {
+		tab-size: 4;
+		counter-reset: linecounter;
+		padding: 0;
+		color: #eee;
+		background-color: #333;
+		font-size: 16px;
+		line-height: 16px;
+	}
 
-pre.code:before {
-    counter-reset: listing;
-}
+	pre span.line {
+		counter-increment: linecounter;
+		line-height: 16px;
+	}
 
-pre.code code {
-    counter-increment: listing;
-}
+	pre span.line::before {
+		content: counter(linecounter);
+		color: red;
+		width: 30px;
+		display: inline-block;
+		border-right: 1px dotted #ccc;
+		padding-right: 3px;
+		text-align: right;
+		font-size: 16px;
+		line-height: 16px;
+	}
 
-pre.code code:before {
-    content: counter(listing) ". ";
-    display: inline-block;
-    width: 8em;         /* doesn't work */
-    padding-left: auto; /* doesn't work */
-    margin-left: auto;  /* doesn't work */
-    text-align: right;  /* doesn't work */
-}
-    </style>
-  </head>
-  <body>
-    <h1>Optimizing NLP Code 01</h1>
-    <p>Junior Programmer (JP) wrote some python code to determine which rows in a pandas dataframe likely contains English text.
-      JP's code took 4+ hours to run on a 600 row dataframe (the text column is standard paragraph length, say 100 words on average).
-      JP's code is listed below:</p>
-    <pre>
-      # ... other imports left out for brevity ...
-      from nltk.stem import WordNetLemmatizer
-      from nltk.corpus import words
+	pre span.line:nth-child(odd)::before {
+		background-color: #555;
+	}
+	</style>
+	<script type="text/javascript">
+	function addLineClass (pre) {
+		var lines = pre.innerText.split("\n"); // can use innerHTML also
+		while(pre.childNodes.length > 0) {
+			pre.removeChild(pre.childNodes[0]);
+		}
+		for(var i = 0; i < lines.length; i++) {
+			var span = document.createElement("span");
+			span.className = "line";
+			span.innerText = lines[i]; // can use innerHTML also
+			pre.appendChild(span);
+			pre.appendChild(document.createTextNode("\n"));
+		}
+	}
+	window.addEventListener("load", function () {
+		var pres = document.getElementsByTagName("pre");
+		for (var i = 0; i < pres.length; i++) {
+			addLineClass(pres[i]);
+		}
+	}, false);
+	</script>
+	<title>Optimizing NLP Code</title>
+</head>
+<body>
+
+<pre>
+    # ... other imports left out for brevity ...
+    from nltk.stem import WordNetLemmatizer
+    from nltk.corpus import words
       
-      lemmatizer = WordNetLemmatizer()      
-      sp = spacy.load("en_core_web_sm", disable=["ner"])
+    lemmatizer = WordNetLemmatizer()      
+    sp = spacy.load("en_core_web_sm", disable=["ner"])
 
-      # Get all the percentage of sentences with english words
-      percentageValidEng = []
-      for index, row in df.iterrows():
-          # number of words per row
-          numWords = len(row['POS'])
-          # append True or False
-          validity = []
-          for token in sp(row['Text']):
-              if (lemmatizer.lemmatize(token.text.lower()) in words.words()) == True:
-                  validity.append(1)
-          percentageValidEng.append(len(validity)/numWords)
-    </pre>
-  </body>
+    # Get all the percentage of sentences with english words
+    percentageValidEng = []
+    for index, row in df.iterrows():
+        # number of words per row
+        numWords = len(row['POS'])
+        # append True or False
+        validity = []
+        for token in sp(row['Text']):
+            if (lemmatizer.lemmatize(token.text.lower()) in words.words()) == True:
+                validity.append(1)
+        percentageValidEng.append(len(validity)/numWords)
+    return percentageValidEng  
+</pre>
+
+<pre>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+	&lt;meta charset="UTF-8"&gt;
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+	&lt;meta http-equiv="X-UA-Compatible" content="ie=edge"&gt;
+	&lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+	
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+</body>
 </html>
