@@ -6,9 +6,9 @@
   <body>
     <h1>Optimizing NLP Code 01</h1>
     <p>Junior Programmer (JP) wrote some python code to determine which rows in a pandas dataframe likely contains English text.
-      JP's code took 4+ hours to run on a 600 row dataframe (the text column is standard paragraph length, so say 100 words on average).
+      JP's code took 4+ hours to run on a 600 row dataframe (the text column is standard paragraph length, say 100 words on average).
       JP's code is listed below:</p>
-    <code>
+    <pre>
       # ... other imports left out for brevity ...
       from nltk.stem import WordNetLemmatizer
       from nltk.corpus import words
@@ -27,6 +27,6 @@
               if (lemmatizer.lemmatize(token.text.lower()) in words.words()) == True:
                   validity.append(1)
           percentageValidEng.append(len(validity)/numWords)
-    </code>
+    </pre>
   </body>
 </html>
