@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>DOTW's Animation Demo</title>
+    <link rel="stylesheet" type="text/css" href="/main.css">
+  </head>
+  <body>
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/cv">CV</a></li>
+      </ul>
+    </nav>
+    <div class="container">
+    <div class="blurb">
+      <h1>David Ong TW's Blog</h1>
+      <p>
+      <h2>Animation Demo written in Python and Kivy</h2>
+      <video width="480" height="360" controls>
+        <source src="Animation Demo v0.2 x264.m4v" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      </p>
+      <p>
+        This animation demo was done to learn the Python programming language proper, and also the Kivy framework for UI.<br>
+        To blog about development experience working with Python, Kivy and pygame for graphics and audio.<br>
+        To mention quirks/gotcha's and other technical stuff learned through experimentation (can't find detailed docs).
+      </p>
+      <p>
+        Some stuff to blog:<br>
+        <ul>
+          <li>Kivy kv file: widget hierarchy traversal, event/properties bindings
+          <li>kv file: widgets to call python code behind (e.g. to callback on_press event continuously)
+          <li>python code to access kv file widgets
+          <li>remove specific instructions (e.g. sprites created on the fly) from Kivy canvas
+          <li>device independent graphics (Windows PC vs retina MacBook vs iOS iPhone)
+          <li>drawing (local/global coords), clipping
+          <li>pygame mixer quirk: make sure mp3 is (re-)sampled to 44100 hz to play correctly, or it will be slower than usual (even at 48Khz!)
+        </ul>
+      </p>
+    </div> <!-- /.blurb -->
+    </div> <!-- /.container -->
+  </body>
+  <footer>
+    <ul>
+      <li><a href="mailto:lagrand@mac.com">email</a></li>
+      <li><a href="https://github.com/ongtw">github.com/ongtw</a></li>
+    </ul>
+  </footer>
+</html>
