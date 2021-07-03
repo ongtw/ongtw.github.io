@@ -1,7 +1,28 @@
 <html>
   <head>
     <title>Optimizing NLP Code 01</title>
-    <link rel="stylesheet" href="code_issues.css">
+    <style>
+pre.code {
+    white-space: pre-wrap;
+}
+
+pre.code:before {
+    counter-reset: listing;
+}
+
+pre.code code {
+    counter-increment: listing;
+}
+
+pre.code code:before {
+    content: counter(listing) ". ";
+    display: inline-block;
+    width: 8em;         /* doesn't work */
+    padding-left: auto; /* doesn't work */
+    margin-left: auto;  /* doesn't work */
+    text-align: right;  /* doesn't work */
+}
+    </style>
   </head>
   <body>
     <h1>Optimizing NLP Code 01</h1>
