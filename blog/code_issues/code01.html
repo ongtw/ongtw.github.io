@@ -63,138 +63,143 @@
 </head>
 <body>
     <nav>
-      <ul>
+        <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/blog">Blog</a></li>
         <li><a href="/cv">CV</a></li>
-      </ul>
+        </ul>
     </nav>
     <div class="container">
     <div class="blurb">
-      <h1>David Ong TW's Blog</h1>
-      <p>
-      <h2>Python NLP Code Optimisation 1</h2>
-	<p>
-		Junior Programmer (JP) wrote some Python code to determine if a Text column in a Pandas dataframe is likely to contain English text.
-		JP's code took 4+ hours to run on a 600-row dataframe; Text is standard sentence length, less than 50 words on average.
-	</p>
-	<p>
-		I took a look at JP's code and noted the bottlenecks, some obvious, some not so obvious.
-		After fiddling with it for a while, managed to take the runtime down to 6 seconds.
-		JP's Code is shown below, so let us investigate what are the bottlenecks:
-	</p>
-	<pre>
-    # ... other imports left out for brevity ...
-    from nltk.stem import WordNetLemmatizer
-    from nltk.corpus import words
-      
-    lemmatizer = WordNetLemmatizer()
-    sp = spacy.load("en_core_web_sm", disable=["ner"])
+        <h1>David Ong TW's Blog</h1>
+        <p>
+        <h2>Python NLP Code Optimisation 1</h2>
+	    <p>
+            Junior Programmer (JP) wrote some Python code to determine if a Text column in a Pandas dataframe is likely to contain English text.
+            JP's code took 4+ hours to run on a 600-row dataframe; Text is standard sentence length, less than 50 words on average.
+	    </p>
+        <p>
+            I took a look at JP's code and noted the bottlenecks, some obvious, some not so obvious.
+            After fiddling with it for a while, managed to take the runtime down to 6 seconds.
+            JP's Code is shown below, so let us investigate what are the bottlenecks:
+        </p>
+        <pre>
+        # ... other imports left out for brevity ...
+        from nltk.stem import WordNetLemmatizer
+        from nltk.corpus import words
 
-    # Get all the percentage of sentences with english words
-    percentageValidEng = []
-    for index, row in df.iterrows():
-        # number of words per row
-        numWords = len(row['POS'])
-        # append True or False
-        validity = []
-        for token in sp(row['Text']):
-            if (lemmatizer.lemmatize(token.text.lower()) in words.words()) == True:
-                validity.append(1)
-        percentageValidEng.append(len(validity)/numWords)
+        lemmatizer = WordNetLemmatizer()
+        sp = spacy.load("en_core_web_sm", disable=["ner"])
 
-	df['percentageValidEng'] = percentageValidEng
-	</pre>
-	<p>
-		JP's heuristic is to tokenize the "Text" column, lemmatize each token and
-		check if the lemmatized token is found in <em>nltk.corpus.words</em>.
-		The column "POS" stores a list of the parts-of-speech (POS) and is previously computed from "Text",
-		so its length = number of words in "Text".
-	</p>
-	<h3>Optimisation 1 : Obvious</h3>
-	<p>
-		The first obvious bottleneck is caused by the (mis)use of the <em>validity</em> variable in lines 14, 17, 18.
-		The list variable is used to keep count of the number of valid English words in Text.
-		But all that is required is just a simple integer.
-		Using a list to keep count is an overkill and Python's garbage collection will kill the code's performance.
-		Replacing the list <em>validity</em> with an integer brings the runtime from 4+ hours down to 11+ minutes:
-		runtime reduced by 95%, a major bottleneck removed.
-	</p>
-	<pre>
-    # Get all the percentage of sentences with english words
-    percentageValidEng = []
-    for index, row in df.iterrows():
-        # number of words per row
-        numWords = len(row['POS'])
-		numValid = 0	# replace the list validity with this integer
-		sent = sp(row['Text'])
-        for token in sent:
-			lem = lemmatizer.lemmatize(token.text.lower())
-            if (lem in words.words()) == True:
-                numValid += 1
-        percentageValidEng.append(numValid/numWords)
-	</pre>
-	<h3>Optimisation 2 : Understand Your Tools</h3>
-	<p>
-		The second bottleneck is caused by the lack of understanding of the tool used: spacy.
-		Reading the spacy docs will reveal that spacy already lemmatizes the input, so there is no need to lemmatize the tokens again.
-		Removing the double lemmatization brings the runtime down to 3+ minutes: runtime reduced by 73% from the 11+ minutes.
-	</p>
-	<pre>
-    # Get all the percentage of sentences with english words
-    percentageValidEng = []
-    for index, row in df.iterrows():
-        # number of words per row
-        numWords = len(row['POS'])
-		numValid = 0	# replace the list validity with this integer
-		sent = sp(row['Text'].lower())
-        for token in sent:
-			# spacy already lemmatizes: don't double lemmatize
-			# lem = lemmatizer.lemmatize(token.text.lower())
-            if token.lemma_ in words.words():
-                numValid += 1
-        percentageValidEng.append(numValid/numWords)
-	</pre>
-	<p>
-		Moral of story from 1 and 2: do not copy-and-paste codes without proper understanding.
-	</p>
-	<h3>Optimisation 3 : Not So Obvious</h3>
-	<p>
-		The third optimisation to get the runtime down to 6 seconds is not so obvious.
-		The bottleneck lies in the <code>if x in words.words()</code> test.
-		<code>words.words()</code> is actually a list of words (verify this with <code>type(words.words())</code>)
-		and performing a membership test on a list is very slow: O(N).
-		So the final optimisation is to perform a one-time conversion of the list of words into a set of words
-		and set membership test is very fast: O(1).
-		11+ minutes to 6 seconds: a 99% reduction.
-	</p>
-	<pre>
-		setVocab = set(words.words())
-	    # Get all the percentage of sentences with english words
-    	percentageValidEng = []
-		for index, row in df.iterrows():
-			# number of words per row
-			numWords = len(row['POS'])
-			numValid = 0	# replace the list validity with this integer
-			sent = sp(row['Text'].lower())
-			for token in sent:
-				if token.lemma_ in setVocab:
-					numValid += 1
-			percentageValidEng.append(numValid/numWords)
-	</pre>
-	<h3>Optimisation 4 : Final</h3>
-	<p>
-		There is one more optimisation that can bring the runtime down to 1 second.
-		If spacy is not required, we can replace spacy with the NLTK's WordNetLemmatizer and
-		this will reduce the runtime from 6 seconds to 1 second.
-		This was discovered through playing around with the code:
-		spacy's initialisation introduces a fixed overhead so it runs slower than NLTK
-		(the constant factor in the big-O notation).
-	</p>
-	<p>
-		That's it for this short blog. Hope it gives you some ideas of where to look for code bottlenecks.
-		I recommend using Python's built-in cProfile tool to investigate your code performance systematically.
-	</p>
+        # Get all the percentage of sentences with english words
+        percentageValidEng = []
+        for index, row in df.iterrows():
+            # number of words per row
+            numWords = len(row['POS'])
+            # append True or False
+            validity = []
+            for token in sp(row['Text']):
+                if (lemmatizer.lemmatize(token.text.lower()) in words.words()) == True:
+                    validity.append(1)
+            percentageValidEng.append(len(validity)/numWords)
+
+        df['percentageValidEng'] = percentageValidEng
+        </pre>
+        <p>
+            JP's heuristic to determine if "Text" is English is to tokenize the "Text" column, lemmatize each token and
+            check if the lemmatized token is found in <em>nltk.corpus.words</em>.
+            The column "POS" stores a list of the parts-of-speech (POS) and is previously computed from "Text",
+            so its length = number of words in "Text".
+        </p>
+        <h3>Optimisation 1 : Obvious</h3>
+        <p>
+            The first obvious bottleneck is caused by the (mis)use of the <em>validity</em> variable in lines 14, 17, 18.
+            The list variable is used to keep count of the number of valid English words in Text.
+            But all that is required is just a simple integer.
+        </p>
+        <p>
+            Using a list to keep count is an overkill and Python's garbage collection will kill the code's performance.
+            Replacing the list <em>validity</em> with an integer brings the runtime from 4+ hours down to 11+ minutes:
+            95% reduction, a major bottleneck removed!
+        </p>
+        <pre>
+        # Get all the percentage of sentences with english words
+        percentageValidEng = []
+        for index, row in df.iterrows():
+            # number of words per row
+            numWords = len(row['POS'])
+            numValid = 0	# replace the list validity with this integer
+            sent = sp(row['Text'])
+            for token in sent:
+                lem = lemmatizer.lemmatize(token.text.lower())
+                if (lem in words.words()) == True:
+                    numValid += 1
+            percentageValidEng.append(numValid/numWords)
+        </pre>
+        <h3>Optimisation 2 : Understand Your Tools</h3>
+        <p>
+            The second bottleneck is caused by the lack of understanding of the tool used: spacy.
+            Reading the spacy docs will reveal that spacy already lemmatizes the input, so there is no need to lemmatize the tokens again.
+            Removing the double lemmatization brings the runtime down to 3+ minutes: runtime reduced by 73% from the 11+ minutes.
+        </p>
+        <pre>
+        # Get all the percentage of sentences with english words
+        percentageValidEng = []
+        for index, row in df.iterrows():
+            # number of words per row
+            numWords = len(row['POS'])
+            numValid = 0	# replace the list validity with this integer
+            sent = sp(row['Text'].lower())
+            for token in sent:
+                # spacy already lemmatizes: don't double lemmatize
+                # lem = lemmatizer.lemmatize(token.text.lower())
+                if token.lemma_ in words.words():
+                    numValid += 1
+            percentageValidEng.append(numValid/numWords)
+        </pre>
+        <p>
+            Moral of story from 1 and 2: please do not copy-and-paste codes without proper understanding.
+        </p>
+    	<h3>Optimisation 3 : Not So Obvious</h3>
+        <p>
+            The third optimisation to get the runtime down to 6 seconds is not so obvious.
+            The bottleneck lies in the test <code>if x in words.words()</code>
+        </p>
+        <p>
+            <code>words.words()</code> is actually a list of words (verify this with <code>type(words.words())</code>)
+            and performing a membership test on a list is very slow: O(N).
+            So the final optimisation is to perform a one-time conversion of the list of words into a set of words
+            and set membership test is very fast: O(1).
+            From 11+ minutes down to 6 seconds, a 99% reduction.
+        </p>    
+        <pre>
+            setVocab = set(words.words())   # convert list to set for fast membership test
+            # Get all the percentage of sentences with english words
+            percentageValidEng = []
+            for index, row in df.iterrows():
+                # number of words per row
+                numWords = len(row['POS'])
+                numValid = 0	# replace the list validity with this integer
+                sent = sp(row['Text'].lower())
+                for token in sent:
+                    if token.lemma_ in setVocab:
+                        numValid += 1
+                percentageValidEng.append(numValid/numWords)
+        </pre>
+        <h3>Optimisation 4 : Final</h3>
+        <p>
+            There is one more optimisation that can bring the runtime down to 1 second.
+            If spacy is not required, we can replace spacy with the NLTK's <em>WordNetLemmatizer</em> and
+            this will reduce the runtime from 6 seconds to 1 second.
+            This was discovered through playing around with the code:
+            it appears that spacy's initialisation introduces a fixed overhead so it runs slower than NLTK
+            (the effect of the constant factor in the big-O notation).
+        </p>
+        <p>
+            That's it for this short blog. Hope it gives you some ideas of where to look for code bottlenecks.
+            I recommend using Python's built-in cProfile tool and the snakeviz visualizer to
+            investigate your code performance systematically.
+        </p>
     </div> <!-- /.blurb -->
     </div> <!-- /.container -->
 </body>
