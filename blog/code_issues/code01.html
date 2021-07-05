@@ -197,6 +197,14 @@
         </p>
 		<h3>Conclusion</h3>
         <p>
+            Why is code runtime important? Because it determines how scalable and practically usable a system is.
+            If we have a corpus of 500 documents to process, at 4 hours per document, it will take 2000 hours, 83.3 days or about 3 months.
+            At 3 minutes per document, the entire run will complete in 25 hours, slightly more than a day.
+            At 6 seconds per document, the run takes less than 1 hour, in just 50 minutes.
+            At 1 second per document, we can complete all 500 documents in less than 10 minutes.
+            The difference in usability is huge.
+        </p>
+        <p>
             That's it for this short blog. Hope it gives you some ideas of where to look for code bottlenecks.
             I recommend using Python's built-in cProfile tool and the snakeviz visualizer to
             investigate your code performance systematically.
