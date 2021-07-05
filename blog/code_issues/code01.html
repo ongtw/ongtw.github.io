@@ -170,7 +170,7 @@
             and performing a membership test on a list is very slow: O(N).
             So the final optimisation is to perform a one-time conversion of the list of words into a set of words
             and set membership test is very fast: O(1).
-            From 11+ minutes down to 6 seconds, a 99% reduction.
+            From 3+ minutes down to 6 seconds, 97% time reduction.
         </p>    
         <pre>
             setVocab = set(words.words())   # convert list to set for fast membership test
@@ -191,10 +191,11 @@
             There is one more optimisation that can bring the runtime down to 1 second.
             If spacy is not required, we can replace spacy with the NLTK's <em>WordNetLemmatizer</em> and
             this will reduce the runtime from 6 seconds to 1 second.
-            This was discovered through playing around with the code:
-            it appears that spacy's initialisation introduces a fixed overhead so it runs slower than NLTK
+            This was discovered through experimenting around with the code:
+            it appears that spacy's initialisation introduces a fixed overhead so it runs slower than the lighter-weight NLTK
             (the effect of the constant factor in the big-O notation).
         </p>
+		<h3>Conclusion</h3>
         <p>
             That's it for this short blog. Hope it gives you some ideas of where to look for code bottlenecks.
             I recommend using Python's built-in cProfile tool and the snakeviz visualizer to
