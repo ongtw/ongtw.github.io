@@ -1,4 +1,5 @@
 ---
+id: getting-started
 layout: home
 ---
 

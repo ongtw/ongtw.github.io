@@ -1,2 +1,4 @@
 theme: lanyon
 title: My GitHub Pages Site
+sidebar:
+  - getting-started
